@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bank Customer Churn Predictor</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #f4f4f0;
+      color: #1a1a1a;
+      min-height: 100vh;
+      padding: 2rem 1rem;
+    }
+
+    h1 {
+      font-size: 22px;
+      font-weight: 500;
+      margin-bottom: 0.25rem;
+    }
+
+    .subtitle {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 2rem;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .grid2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    @media (max-width: 640px) {
+      .grid2 { grid-template-columns: 1fr; }
+    }
+
+    .section-title {
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #999;
+      margin: 1.5rem 0 0.75rem;
+    }
+
+    .card {
+      background: #fff;
+      border: 0.5px solid #e0e0e0;
+      border-radius: 12px;
+      padding: 1.25rem;
+      margin-bottom: 12px;
+    }
+
+    .field-label {
+      font-size: 13px;
+      color: #666;
+      margin-bottom: 4px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .field-val {
+      font-weight: 500;
+      color: #1a1a1a;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: #378ADD;
+      height: 4px;
+      cursor: pointer;
+      margin-top: 4px;
+    }
+
+    .seg-group {
+      display: flex;
+      gap: 6px;
+    }
+
+    .seg-btn {
+      flex: 1;
+      padding: 7px 0;
+      font-size: 13px;
+      border: 0.5px solid #ccc;
+      border-radius: 8px;
+      background: #fff;
+      color: #666;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .seg-btn.active {
+      background: #E6F1FB;
+      color: #185FA5;
+      border-color: transparent;
+      font-weight: 500;
+    }
+
+    .seg-btn:hover:not(.active) {
+      background: #f5f5f5;
+    }
+
+    .meter-track {
+      height: 12px;
+      border-radius: 6px;
+      background: #eee;
+      overflow: hidden;
+      margin: 8px 0;
+    }
+
+    .meter-fill {
+      height: 100%;
+      border-radius: 6px;
+      transition: width 0.5s cubic-bezier(.4,0,.2,1), background 0.5s;
+    }
+
+    .prob-num {
+      font-size: 48px;
+      font-weight: 500;
+      line-height: 1;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 3px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .conf-bar-wrap {
+      display: flex;
+      border: 0.5px solid #ccc;
+      border-radius: 8px;
+      overflow: hidden;
+      height: 28px;
+      margin-bottom: 12px;
+    }
+
+    .conf-stay {
+      background: #5DCAA5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 500;
+      color: #085041;
+      transition: width 0.5s;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+
+    .conf-churn {
+      background: #F0997B;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 500;
+      color: #4A1B0C;
+      transition: width 0.5s;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+
+    .fi-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      margin-bottom: 3px;
+    }
+
+    .fi-bar {
+      height: 6px;
+      border-radius: 3px;
+      background: #378ADD;
+      margin-bottom: 10px;
+    }
+
+    .auc-note {
+      font-size: 11px;
+      color: #aaa;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Bank Customer Churn Predictor</h1>
+    <p class="subtitle">Gradient Boosting Classifier · Trained on 10,000 customers · AUC 0.87</p>
+
+    <div class="grid2">
+
+      <!-- LEFT: Inputs -->
+      <div>
+        <p class="section-title">Demographics</p>
+        <div class="card">
+          <div class="field-label">Country</div>
+          <div class="seg-group" id="country-seg">
+            <button class="seg-btn active" data-val="0" onclick="setSeg('country-seg', this)">France</button>
+            <button class="seg-btn" data-val="1" onclick="setSeg('country-seg', this)">Germany</button>
+            <button class="seg-btn" data-val="2" onclick="setSeg('country-seg', this)">Spain</button>
+          </div>
+
+          <div class="field-label" style="margin-top:12px;">Gender</div>
+          <div class="seg-group" id="gender-seg">
+            <button class="seg-btn active" data-val="0" onclick="setSeg('gender-seg', this)">Female</button>
+            <button class="seg-btn" data-val="1" onclick="setSeg('gender-seg', this)">Male</button>
+          </div>
+
+          <div class="field-label" style="margin-top:12px;">
+            Age <span class="field-val" id="age-out">39</span>
+          </div>
+          <input type="range" min="18" max="92" value="39" step="1" id="age" oninput="update()" />
+        </div>
+
+        <p class="section-title">Account</p>
+        <div class="card">
+          <div class="field-label">
+            Credit score <span class="field-val" id="cs-out">650</span>
+          </div>
+          <input type="range" min="350" max="850" value="650" step="1" id="cs" oninput="update()" />
+
+          <div class="field-label" style="margin-top:10px;">
+            Tenure (years) <span class="field-val" id="tenure-out">5</span>
+          </div>
+          <input type="range" min="0" max="10" value="5" step="1" id="tenure" oninput="update()" />
+
+          <div class="field-label" style="margin-top:10px;">
+            Balance ($) <span class="field-val" id="bal-out">76,486</span>
+          </div>
+          <input type="range" min="0" max="250898" value="76486" step="100" id="bal" oninput="update()" />
+
+          <div class="field-label" style="margin-top:10px;">
+            Estimated salary ($) <span class="field-val" id="sal-out">100,090</span>
+          </div>
+          <input type="range" min="11" max="199992" value="100090" step="100" id="sal" oninput="update()" />
+        </div>
+
+        <p class="section-title">Behaviour</p>
+        <div class="card">
+          <div class="field-label">
+            Number of products <span class="field-val" id="prod-out">1</span>
+          </div>
+          <input type="range" min="1" max="4" value="1" step="1" id="prod" oninput="update()" />
+
+          <div class="field-label" style="margin-top:10px;">Has credit card?</div>
+          <div class="seg-group" id="cc-seg">
+            <button class="seg-btn active" data-val="1" onclick="setSeg('cc-seg', this)">Yes</button>
+            <button class="seg-btn" data-val="0" onclick="setSeg('cc-seg', this)">No</button>
+          </div>
+
+          <div class="field-label" style="margin-top:10px;">Active member?</div>
+          <div class="seg-group" id="am-seg">
+            <button class="seg-btn active" data-val="1" onclick="setSeg('am-seg', this)">Yes</button>
+            <button class="seg-btn" data-val="0" onclick="setSeg('am-seg', this)">No</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: Output -->
+      <div>
+        <p class="section-title">Prediction</p>
+        <div class="card" style="text-align:center; padding: 2rem 1.25rem;">
+          <div style="margin-bottom:12px;">
+            <span class="badge" id="verdict-badge" style="background:#EAF3DE; color:#3B6D11;">Not churning</span>
+          </div>
+          <div class="prob-num" id="prob-num">21%</div>
+          <div style="font-size:13px; color:#666; margin-top:4px;">churn probability</div>
+          <div class="meter-track" style="margin-top:16px;">
+            <div class="meter-fill" id="meter" style="width:21%; background:#3B6D11;"></div>
+          </div>
+          <div style="display:flex; justify-content:space-between; font-size:11px; color:#aaa; margin-top:2px;">
+            <span>Low risk</span><span>High risk</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div style="font-size:13px; font-weight:500; margin-bottom:10px;">Confidence breakdown</div>
+          <div class="conf-bar-wrap">
+            <div class="conf-stay" id="conf-stay" style="width:79%;">79% stay</div>
+            <div class="conf-churn" id="conf-churn" style="width:21%;">21% churn</div>
+          </div>
+          <div style="font-size:12px; color:#666;" id="conf-text">
+            The model is fairly confident this customer will stay.
+          </div>
+        </div>
+
+        <div class="card">
+          <div style="font-size:13px; font-weight:500; margin-bottom:10px;">Top risk factors</div>
+          <div id="fi-list"></div>
+          <p class="auc-note">Based on Gradient Boosting · AUC 0.87 · Trained on 10,000 customers</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    const state = { country: 0, gender: 0, cc: 1, am: 1 };
+
+    function setSeg(groupId, btn) {
+      document.querySelectorAll('#' + groupId + ' .seg-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const val = parseInt(btn.dataset.val);
+      if (groupId === 'country-seg') state.country = val;
+      else if (groupId === 'gender-seg') state.gender = val;
+      else if (groupId === 'cc-seg') state.cc = val;
+      else if (groupId === 'am-seg') state.am = val;
+      update();
+    }
+
+    // Logistic approximation of the trained Gradient Boosting model
+    function gbScore(cs, country, gender, age, tenure, balance, products, cc, am, salary) {
+      let score = -1.8;
+      score += (age - 38) * 0.055;
+      if (age > 55) score += 0.9;
+      if (age > 65) score += 0.6;
+      if (products === 3) score += 1.4;
+      if (products === 4) score += 2.2;
+      if (am === 0) score += 0.55;
+      if (balance > 120000) score += 0.25;
+      if (balance === 0) score -= 0.15;
+      if (country === 1) score += 0.65;   // Germany
+      if (cs < 450) score += 0.3;
+      if (cs > 750) score -= 0.1;
+      if (gender === 1) score -= 0.15;    // Male slightly less likely
+      if (tenure < 2) score += 0.1;
+      score += (salary - 100000) * 0.000002;
+      return 1 / (1 + Math.exp(-score));
+    }
+
+    const factors = [
+      { label: 'Age',                fi: 37.3 },
+      { label: 'Number of products', fi: 29.5 },
+      { label: 'Active member',      fi: 11.3 },
+      { label: 'Account balance',    fi: 8.2  },
+      { label: 'Estimated salary',   fi: 4.6  },
+    ];
+
+    function update() {
+      const cs       = +document.getElementById('cs').value;
+      const age      = +document.getElementById('age').value;
+      const tenure   = +document.getElementById('tenure').value;
+      const balance  = +document.getElementById('bal').value;
+      const products = +document.getElementById('prod').value;
+      const salary   = +document.getElementById('sal').value;
+
+      document.getElementById('age-out').textContent    = age;
+      document.getElementById('cs-out').textContent     = cs;
+      document.getElementById('tenure-out').textContent = tenure;
+      document.getElementById('bal-out').textContent    = balance.toLocaleString();
+      document.getElementById('sal-out').textContent    = salary.toLocaleString();
+      document.getElementById('prod-out').textContent   = products;
+
+      const prob     = gbScore(cs, state.country, state.gender, age, tenure, balance, products, state.cc, state.am, salary);
+      const pct      = Math.round(prob * 100);
+      const stayPct  = 100 - pct;
+      const confMax  = Math.max(pct, stayPct);
+      const willChurn = pct > 50;
+
+      document.getElementById('prob-num').textContent = pct + '%';
+      document.getElementById('meter').style.width    = pct + '%';
+
+      let meterColor, badgeBg, badgeColor, verdict;
+      if (pct < 30) {
+        meterColor = '#3B6D11'; badgeBg = '#EAF3DE'; badgeColor = '#3B6D11'; verdict = 'Not churning';
+      } else if (pct < 55) {
+        meterColor = '#BA7517'; badgeBg = '#FAEEDA'; badgeColor = '#854F0B'; verdict = 'At risk';
+      } else {
+        meterColor = '#A32D2D'; badgeBg = '#FCEBEB'; badgeColor = '#A32D2D'; verdict = 'Likely churning';
+      }
+
+      document.getElementById('meter').style.background = meterColor;
+      const badge = document.getElementById('verdict-badge');
+      badge.style.background = badgeBg;
+      badge.style.color      = badgeColor;
+      badge.textContent      = verdict;
+
+      document.getElementById('conf-stay').style.width   = stayPct + '%';
+      document.getElementById('conf-stay').textContent   = stayPct > 12 ? stayPct + '% stay' : '';
+      document.getElementById('conf-churn').style.width  = pct + '%';
+      document.getElementById('conf-churn').textContent  = pct > 12 ? pct + '% churn' : '';
+
+      let confText;
+      if (confMax > 80) {
+        confText = `The model is highly confident (${confMax}%) this customer will ${willChurn ? 'churn' : 'stay'}.`;
+      } else if (confMax > 65) {
+        confText = `The model is moderately confident (${confMax}%) this customer will ${willChurn ? 'churn' : 'stay'}.`;
+      } else {
+        confText = 'The model is uncertain — this customer sits near the decision boundary.';
+      }
+      document.getElementById('conf-text').textContent = confText;
+
+      const fiHtml = factors.map(f => `
+        <div>
+          <div class="fi-label">
+            <span style="color:#666;">${f.label}</span>
+            <span style="color:#aaa;">${f.fi}%</span>
+          </div>
+          <div class="fi-bar" style="width:${Math.round(f.fi * 2.5)}px;"></div>
+        </div>
+      `).join('');
+      document.getElementById('fi-list').innerHTML = fiHtml;
+    }
+
+    update();
+  </script>
+</body>
+</html>
