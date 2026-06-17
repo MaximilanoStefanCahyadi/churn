@@ -74,8 +74,8 @@ Both models are pre-trained and stored as `.pkl` files. The dashboard compares t
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/your-username/churn-main.git
-   cd churn-main
+   git clone https://github.com/your-username/churn.git
+   cd churn
    ```
 
 2. **Create and activate a virtual environment**
@@ -106,7 +106,7 @@ Both models are pre-trained and stored as `.pkl` files. The dashboard compares t
 ## 📁 Project Structure
 
 ```
-churn-main/
+churn/
 ├── app.py                # Streamlit dashboard (main application)
 ├── requirements.txt      # Python dependencies
 ├── churn.csv             # Dataset — 10,000 bank customers
